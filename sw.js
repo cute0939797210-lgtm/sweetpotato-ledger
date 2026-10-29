@@ -1,6 +1,6 @@
 // 🍠 Service Worker：App 本身可離線開啟；資料一律即時連線（不快取帳務資料，避免看到舊數字）
-const CACHE = "sp-7e886a6e17";
-const SHELL = ["./", "./index.html", "./app.js?v=7e886a6e17", "./app.css?v=7e886a6e17", "./config.js?v=7e886a6e17", "./manifest.webmanifest", "./icons/icon-192.png"];
+const CACHE = "sp-b0e508df71";
+const SHELL = ["./", "./index.html", "./app.js?v=b0e508df71", "./app.css?v=b0e508df71", "./config.js?v=b0e508df71", "./manifest.webmanifest", "./icons/icon-192.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -12,7 +12,7 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET" || url.origin !== location.origin) return;   // Supabase 請求不經過快取
   if (e.request.mode === "navigate") {
-    e.respondWith(fetch(e.request).catch(() => caches.match("./index.html")));
+    e.respondWith(fetch(e.request.url, { cache: "no-store" }).catch(() => caches.match("./index.html")));   // 首頁一律抓最新，不用手機舊快取
     return;
   }
   e.respondWith(caches.match(e.request).then((hit) => hit || fetch(e.request)));
