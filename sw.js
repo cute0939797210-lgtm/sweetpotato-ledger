@@ -1,6 +1,6 @@
 // 🍠 Service Worker：App 本身可離線開啟；資料一律即時連線（不快取帳務資料，避免看到舊數字）
-const CACHE = "sp-653632a90d";
-const SHELL = ["./", "./index.html", "./app.js?v=653632a90d", "./app.css?v=653632a90d", "./config.js?v=653632a90d", "./manifest.webmanifest", "./icons/icon-192.png"];
+const CACHE = "sp-8fefb7f3db";
+const SHELL = ["./", "./index.html", "./app.js?v=8fefb7f3db", "./app.css?v=8fefb7f3db", "./config.js?v=8fefb7f3db", "./manifest.webmanifest", "./icons/icon-192.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
