@@ -1421,6 +1421,12 @@ function F11({ route }) {
             bonus: "補貨",
             other: "其他",
             adjust: "調整",
+            // 庫存調整（盤點少了、報廢…）造成的成本
+            adjust_count: "盤差損失",
+            adjust_other: "盤差損失",
+            adjust_waste: "報廢損失",
+            adjust_family: "家人取用",
+            adjust_bonus: "補貨",
           };
           return (
             <>
@@ -1510,7 +1516,11 @@ function F11({ route }) {
                             {k.map((G, ie) => (
                               <span key={ie}>
                                 {h(G.item_id)} {num(G.qty)} 包 <b className="text-ink">{money(G.cost)}</b>
-                                {G.kind !== "cooked" ? `\uFF08${v[G.kind] ?? G.kind}\uFF09` : ""}
+                                {G.kind !== "cooked" && (
+                                  <span className="font-bold text-warn">
+                                    （{v[G.kind] ?? (G.kind.startsWith("adjust_") ? "盤差損失" : G.kind)}）
+                                  </span>
+                                )}
                               </span>
                             ))}
                           </div>
