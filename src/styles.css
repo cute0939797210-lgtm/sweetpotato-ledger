@@ -1,0 +1,334 @@
+@import "tailwindcss";
+
+/* 🍠 配色取自烤地瓜：地瓜肉的金黃、地瓜皮的紫紅、地瓜葉的綠、炭爐的深色 */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-sunk: var(--sunk);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-flesh: var(--flesh);
+  --color-flesh-soft: var(--flesh-soft);
+  --color-flesh-ink: var(--flesh-ink);
+  --color-on-flesh: var(--on-flesh);
+  --color-skin: var(--skin);
+  --color-skin-soft: var(--skin-soft);
+  --color-leaf: var(--leaf);
+  --color-leaf-soft: var(--leaf-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-c-cost: var(--c-cost);
+  --color-c-rent: var(--c-rent);
+  --color-c-other: var(--c-other);
+  --color-c-profit: var(--c-profit);
+  --font-sans: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
+}
+
+/* 下面這段是從線上 app.css 還原：預設配色、深色、外觀（清爽白綠／溫暖奶茶／深色夜市）、表單、列印 */
+:root {
+  --bg: #f2eff4;
+  --card: #ffffff;
+  --sunk: #e9e4ec;
+  --ink: #2a1f2d;
+  --muted: #6c6272;
+  --line: #ddd6e1;
+  --flesh: #f0a43a;
+  --flesh-soft: #fdf0db;
+  --flesh-ink: #8a520a;
+  --on-flesh: #2a1f2d;
+  --skin: #7a3350;
+  --skin-soft: #f6e6ed;
+  --salary: #c62f3a;
+  --salary-soft: #fde4e8;
+  --salary-line: #f2a7b1;
+  --plan: #2f5fa8;
+  --plan-soft: #e3ecfb;
+  --plan-line: #9fb9e6;
+  --leaf: #2c7a57;
+  --leaf-soft: #e2f2ea;
+  --warn: #b4441c;
+  --red: #d11a2a;
+  --warn-soft: #fbe7de;
+  --c-cost: #d3861c;
+  --c-rent: #a6466c;
+  --c-other: #9b8fa3;
+  --c-profit: #2f8a5f;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]),
+  :root[data-theme=potato] {
+    --bg: #19141c;
+    --card: #241d28;
+    --sunk: #2e2633;
+    --ink: #f1ecf3;
+    --muted: #a99fae;
+    --line: #3b3240;
+    --flesh: #f2a944;
+    --flesh-soft: #3a2a14;
+    --flesh-ink: #f6c27a;
+    --skin: #e08aaa;
+    --skin-soft: #3a2230;
+    --salary: #f28b93;
+    --salary-soft: #43222a;
+    --salary-line: #8a3b47;
+    --plan: #8fb4f0;
+    --plan-soft: #1d2a40;
+    --plan-line: #3d5a88;
+    --leaf: #6cc79b;
+    --leaf-soft: #1c3329;
+    --warn: #f08a5d;
+    --red: #ff6b6b;
+    --warn-soft: #3b2219;
+    --c-cost: #b8791f;
+    --c-rent: #c76a92;
+    --c-other: #6b6271;
+    --c-profit: #3f9d70;
+    color-scheme: dark;
+  }
+}
+:root[data-theme=fresh] {
+  --bg: #f4f7f5;
+  --card: #ffffff;
+  --sunk: #e9efeb;
+  --ink: #1b2a23;
+  --muted: #5b6b63;
+  --line: #d8e2dc;
+  --flesh: #24865b;
+  --flesh-soft: #e1f3ea;
+  --flesh-ink: #1b6646;
+  --on-flesh: #ffffff;
+  --skin: #a8395f;
+  --skin-soft: #fbe8ef;
+  --leaf: #237049;
+  --leaf-soft: #def1e6;
+  --c-cost: #d3861c;
+  --c-rent: #a6466c;
+  --c-other: #94a19b;
+  --c-profit: #2f8a5f;
+  color-scheme: light;
+}
+:root[data-theme=milk] {
+  --bg: #f6efe4;
+  --card: #fffcf7;
+  --sunk: #eee3d3;
+  --ink: #3a2a1d;
+  --muted: #76655a;
+  --line: #e3d5c1;
+  --flesh: #a8651d;
+  --flesh-soft: #f7e7d1;
+  --flesh-ink: #7a4810;
+  --on-flesh: #ffffff;
+  --skin: #96435a;
+  --skin-soft: #f6e3e5;
+  --leaf: #4a7536;
+  --leaf-soft: #e6efd9;
+  --c-cost: #c47f22;
+  --c-rent: #9a4a63;
+  --c-other: #a3958a;
+  --c-profit: #4f8a3f;
+  color-scheme: light;
+}
+:root[data-theme=night] {
+  --bg: #121015;
+  --card: #1f1c24;
+  --sunk: #2a2630;
+  --ink: #f3eff5;
+  --muted: #aaa1b0;
+  --line: #36313c;
+  --flesh: #f5a33b;
+  --flesh-soft: #3a2a14;
+  --flesh-ink: #f9c47e;
+  --on-flesh: #1a1410;
+  --skin: #ec8fb1;
+  --skin-soft: #3c2231;
+  --salary: #f28b93;
+  --salary-soft: #43222a;
+  --salary-line: #8a3b47;
+  --plan: #8fb4f0;
+  --plan-soft: #1d2a40;
+  --plan-line: #3d5a88;
+  --leaf: #72d0a2;
+  --leaf-soft: #1b3328;
+  --warn: #f3916a;
+  --red: #ff6b6b;
+  --warn-soft: #3b2219;
+  --c-cost: #b8791f;
+  --c-rent: #c76a92;
+  --c-other: #6b6271;
+  --c-profit: #3f9d70;
+  color-scheme: dark;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum";
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+input,
+select,
+textarea,
+button {
+  font: inherit;
+  color: inherit;
+}
+:focus-visible {
+  outline: 3px solid var(--flesh);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *:before,
+  *:after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+.field {
+  width: 100%;
+  min-height: 3rem;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  border-radius: .75rem;
+  padding: .6rem .85rem;
+  font-size: 1.05rem;
+}
+.field:focus {
+  border-color: var(--flesh);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--flesh-soft);
+}
+.field-salary {
+  background: var(--salary-soft);
+  border-color: var(--salary-line);
+  color: var(--salary);
+}
+.field-salary:focus {
+  border-color: var(--salary);
+  box-shadow: 0 0 0 3px var(--salary-soft);
+}
+.field-salary::placeholder {
+  color: var(--salary-line);
+}
+.field-plan {
+  background: var(--plan-soft);
+  border-color: var(--plan-line);
+  color: var(--plan);
+}
+.field-plan:focus {
+  border-color: var(--plan);
+  box-shadow: 0 0 0 3px var(--plan-soft);
+}
+.field-plan::placeholder {
+  color: var(--plan-line);
+}
+.text-plan {
+  color: var(--plan);
+}
+.bg-plan-soft {
+  background: var(--plan-soft);
+}
+.text-salary {
+  color: var(--salary);
+}
+.bg-weekend {
+  background: var(--salary-soft);
+}
+select.field {
+  appearance: none;
+  background-image:
+    linear-gradient(
+      45deg,
+      transparent 50%,
+      var(--muted) 50%),
+    linear-gradient(
+      135deg,
+      var(--muted) 50%,
+      transparent 50%);
+  background-position: calc(100% - 18px) 55%, calc(100% - 12px) 55%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 2rem;
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.toast-in {
+  animation: toast-in .18s ease-out;
+}
+@keyframes toast-in {
+  0% {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.sheet-in {
+  animation: sheet-in .2s ease-out;
+}
+@keyframes sheet-in {
+  0% {
+    transform: translateY(24px);
+    opacity: .4;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.section-aside > a,
+.section-aside > button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 .5rem;
+  border-radius: .5rem;
+}
+.section-aside > a:active,
+.section-aside > button:active {
+  background: var(--sunk);
+}
+section[id] {
+  scroll-margin-top: 4rem;
+}
+.text-red {
+  color: var(--red);
+}
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .print-area,
+  .print-area * {
+    color: #000 !important;
+  }
+  .print-area table {
+    border-collapse: collapse;
+  }
+  .print-area td,
+  .print-area th {
+    padding: 2px 5px !important;
+  }
+  main > div > header,
+  .toast-in {
+    display: none !important;
+  }
+}

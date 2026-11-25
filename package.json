@@ -1,0 +1,20 @@
+{
+  "name": "sweet-potato-ledger",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "🍠 地瓜營運記帳（PWA）",
+  "scripts": {
+    "build": "node build.mjs",
+    "test:compare": "node test/compare.mjs test/out"
+  },
+  "dependencies": {
+    "jszip": "3.10.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "tailwindcss": "4.3.3"
+  }
+}
