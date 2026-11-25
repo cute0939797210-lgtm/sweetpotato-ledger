@@ -1,12 +1,14 @@
 // esbuild 的 class 欄位小工具（原本在共用 chunk 裡）
 const d = (obj, key, value) => {
   const k = typeof key !== "symbol" ? key + "" : key;
-  if (k in obj) Object.defineProperty(obj, k, {
-    enumerable: true,
-    configurable: true,
-    writable: true,
-    value
-  });else obj[k] = value;
+  if (k in obj)
+    Object.defineProperty(obj, k, {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value,
+    });
+  else obj[k] = value;
   return value;
 };
 
@@ -37,7 +39,7 @@ export function getConfig() {
   if (window_SP_CONFIG?.url && window_SP_CONFIG?.anonKey) {
     return {
       url: window_SP_CONFIG.url.replace(/\/$/, ""),
-      anonKey: window_SP_CONFIG.anonKey
+      anonKey: window_SP_CONFIG.anonKey,
     };
   }
   let t = lsGet(CONFIG_KEY);
@@ -49,7 +51,7 @@ export function getConfig() {
     if (a.url && a.anonKey) {
       return {
         url: a.url.replace(/\/$/, ""),
-        anonKey: a.anonKey
+        anonKey: a.anonKey,
       };
     }
     return null;
@@ -118,7 +120,7 @@ const sessionListeners = new Set();
 function setSession(e) {
   session = e;
   lsSet(SESSION_KEY, e ? JSON.stringify(e) : null);
-  sessionListeners.forEach(t => t(e));
+  sessionListeners.forEach((t) => t(e));
 }
 
 async function authRequest(e, t) {
@@ -129,9 +131,9 @@ async function authRequest(e, t) {
       method: "POST",
       headers: {
         apikey: a.anonKey,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(t)
+      body: JSON.stringify(t),
     });
   } catch {
     throw new DbError("網路連線失敗，請檢查網路後再試一次。");
@@ -144,7 +146,7 @@ async function authRequest(e, t) {
     access_token: l.access_token,
     refresh_token: l.refresh_token,
     expires_at: l.expires_at ?? Math.floor(Date.now() / 1000) + (l.expires_in ?? 3600),
-    email: l.user?.email ?? ""
+    email: l.user?.email ?? "",
   };
 }
 
@@ -156,18 +158,23 @@ async function ensureSession() {
   }
   if (!(session.expires_at - 60 > Date.now() / 1000)) {
     refreshing ??= authRequest("token?grant_type=refresh_token", {
-      refresh_token: session.refresh_token
-    }).then(e => setSession({
-      ...e,
-      email: e.email || session?.email || ""
-    })).catch(e => {
-      if (e instanceof DbError && e.status >= 400) {
-        setSession(null);
-      }
-      throw e;
-    }).finally(() => {
-      refreshing = null;
-    });
+      refresh_token: session.refresh_token,
+    })
+      .then((e) =>
+        setSession({
+          ...e,
+          email: e.email || session?.email || "",
+        })
+      )
+      .catch((e) => {
+        if (e instanceof DbError && e.status >= 400) {
+          setSession(null);
+        }
+        throw e;
+      })
+      .finally(() => {
+        refreshing = null;
+      });
     await refreshing;
   }
 }
@@ -183,10 +190,12 @@ export const auth = {
     };
   },
   async signIn(email, password) {
-    setSession(await authRequest("token?grant_type=password", {
-      email,
-      password
-    }));
+    setSession(
+      await authRequest("token?grant_type=password", {
+        email,
+        password,
+      })
+    );
   },
   async signOut() {
     let e = getConfig();
@@ -195,12 +204,12 @@ export const auth = {
         method: "POST",
         headers: {
           apikey: e.anonKey,
-          Authorization: `Bearer ${session.access_token}`
-        }
+          Authorization: `Bearer ${session.access_token}`,
+        },
       }).catch(() => {});
     }
     setSession(null);
-  }
+  },
 };
 
 function requireConfig() {
@@ -219,9 +228,9 @@ export const lte = (e, t) => [e, `lte.${t}`];
 
 export const gt = (e, t) => [e, `gt.${t}`];
 
-export const isNull = e => [e, "is.null"];
+export const isNull = (e) => [e, "is.null"];
 
-export const inList = (e, t) => [e, `in.(${t.map(a => `"${a}"`).join(",")})`];
+export const inList = (e, t) => [e, `in.(${t.map((a) => `"${a}"`).join(",")})`];
 
 function buildQuery(e) {
   let urlSearchParams = new URLSearchParams();
@@ -251,8 +260,8 @@ async function request(e, t = {}) {
         Authorization: `Bearer ${session?.access_token}`,
         "Content-Type": "application/json",
         Prefer: "return=representation",
-        ...t.headers
-      }
+        ...t.headers,
+      },
     });
   } catch {
     throw new DbError("網路連線失敗，資料沒有儲存。請檢查網路後再試一次。");
@@ -275,33 +284,40 @@ async function request(e, t = {}) {
 export const db = {
   select(e, t = {}) {
     return request(`${e}?${buildQuery(t)}`, {
-      method: "GET"
+      method: "GET",
     });
   },
   insert(e, t) {
     return request(e, {
       method: "POST",
-      body: JSON.stringify(t)
+      body: JSON.stringify(t),
     });
   },
   update(e, t, where) {
-    return request(`${e}?${buildQuery({
-      where,
-      select: "*"
-    })}`, {
-      method: "PATCH",
-      body: JSON.stringify(t)
-    });
+    return request(
+      `${e}?${buildQuery({
+        where,
+        select: "*",
+      })}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(t),
+      }
+    );
   },
   softDelete(e, t) {
-    return this.update(e, {
-      deleted_at: new Date().toISOString()
-    }, [eq("id", t)]);
+    return this.update(
+      e,
+      {
+        deleted_at: new Date().toISOString(),
+      },
+      [eq("id", t)]
+    );
   },
   rpc(e, t) {
     return request(`rpc/${e}`, {
       method: "POST",
-      body: JSON.stringify(t)
+      body: JSON.stringify(t),
     });
-  }
+  },
 };

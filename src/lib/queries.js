@@ -3,7 +3,7 @@ import { db, eq, gte, isNull, lte } from "./supabase.js";
 export function pnlEntries(e, t) {
   return db.select("v_pnl_entries", {
     where: [gte("entry_date", e), lte("entry_date", t)],
-    order: "entry_date"
+    order: "entry_date",
   });
 }
 
@@ -15,7 +15,7 @@ export function totals(e) {
     opProfit: 0,
     fixed: 0,
     personal: 0,
-    groups: {}
+    groups: {},
   };
   for (let a of e) {
     let n = Number(a.amount);
@@ -43,36 +43,42 @@ export function totals(e) {
 export function monthlySummaries(e, t) {
   return db.select("v_monthly_summary", {
     where: [gte("month", e), lte("month", t)],
-    order: "month"
+    order: "month",
   });
 }
 
 export async function dayBundle(e) {
-  let a = (await db.select("business_days", {
-    where: [eq("day", e), isNull("deleted_at")]
-  }))[0] ?? null;
+  let a =
+    (
+      await db.select("business_days", {
+        where: [eq("day", e), isNull("deleted_at")],
+      })
+    )[0] ?? null;
   if (!a) {
     return {
       day: null,
       counts: [],
-      txns: []
+      txns: [],
     };
   }
-  let [n, l] = await Promise.all([db.select("daily_item_counts", {
-    where: [eq("business_day_id", a.id), isNull("deleted_at")]
-  }), db.select("transactions", {
-    where: [eq("business_day_id", a.id), isNull("deleted_at")],
-    order: "created_at"
-  })]);
+  let [n, l] = await Promise.all([
+    db.select("daily_item_counts", {
+      where: [eq("business_day_id", a.id), isNull("deleted_at")],
+    }),
+    db.select("transactions", {
+      where: [eq("business_day_id", a.id), isNull("deleted_at")],
+      order: "created_at",
+    }),
+  ]);
   return {
     day: a,
     counts: n,
-    txns: l
+    txns: l,
   };
 }
 
 export function suggestMarkets(p_day) {
   return db.rpc("suggest_markets", {
-    p_day
+    p_day,
   });
 }

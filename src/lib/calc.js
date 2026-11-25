@@ -1,5 +1,10 @@
 export function evalFormula(e) {
-  let t = e.replace(/[，,\s]/g, "").replace(/[×xX]/g, "*").replace(/÷/g, "/").replace(/[－—]/g, "-").replace(/＋/g, "+");
+  let t = e
+    .replace(/[，,\s]/g, "")
+    .replace(/[×xX]/g, "*")
+    .replace(/÷/g, "/")
+    .replace(/[－—]/g, "-")
+    .replace(/＋/g, "+");
   if (!t || !/^[0-9.+\-*/()]+$/.test(t)) {
     return null;
   }

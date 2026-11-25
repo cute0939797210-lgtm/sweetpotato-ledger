@@ -5,7 +5,7 @@ export function today_() {
     timeZone,
     year: "numeric",
     month: "2-digit",
-    day: "2-digit"
+    day: "2-digit",
   }).format(new Date());
 }
 
@@ -68,11 +68,11 @@ export function monthLabel(e) {
 }
 
 const fmtInt = new Intl.NumberFormat("zh-TW", {
-  maximumFractionDigits: 0
+  maximumFractionDigits: 0,
 });
 
 const fmtDec = new Intl.NumberFormat("zh-TW", {
-  maximumFractionDigits: 2
+  maximumFractionDigits: 2,
 });
 
 export function money(e) {

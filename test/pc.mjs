@@ -1,0 +1,13 @@
+import { chromium } from '/home/claude/.npm-global/lib/node_modules/playwright/index.mjs';
+import { install } from './mock.mjs';
+import * as F from './fixtures.mjs';
+const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: 390, height: 844 } }); await install(ctx, []);
+const p = await ctx.newPage(); await p.clock.install({ time: new Date('2026-11-25T13:00:00+08:00') });
+const errs = []; p.on('pageerror', (e) => errs.push(e.message));
+await p.goto('http://127.0.0.1:8091/');
+await p.evaluate((id) => localStorage.setItem('portion_cost_settings', JSON.stringify({ price: '50', yieldPct: '90', kg: { [id]: '25' } })), F.items[0].id);
+await p.fill('input[type=email]', 'a@b.c'); await p.fill('input[type=password]', 'pw'); await p.click('button[type=submit]'); await p.waitForTimeout(2000);
+await p.goto('http://127.0.0.1:8091/#/portion-cost'); await p.waitForTimeout(2000);
+await p.screenshot({ path: '/home/claude/sp/test/pc.png', clip: { x: 0, y: 0, width: 390, height: 844 } });
+console.log(errs, await p.evaluate(() => localStorage.getItem('portion_cost_settings')));
+await b.close();

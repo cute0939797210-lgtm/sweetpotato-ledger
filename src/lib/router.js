@@ -6,7 +6,7 @@ function parseHash() {
   return {
     path: t,
     parts: t.split("/").filter(Boolean),
-    query: new URLSearchParams(a)
+    query: new URLSearchParams(a),
   };
 }
 

@@ -2,15 +2,26 @@ import * as React from "react";
 import { Btn, Field } from "../components/ui.jsx";
 import { DbError, auth, hasBuiltinConfig, saveConfig } from "../lib/supabase.js";
 
-function AuthShell({
-  children
-}) {
-  return <div className="flex min-h-dvh items-center justify-center p-5"><div className="w-full max-w-sm"><div className="mb-8 text-center"><div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-[1.6rem] bg-skin text-5xl" aria-hidden>🍠</div><h1 className="text-2xl font-bold">地瓜營運記帳</h1></div>{children}</div></div>;
+function AuthShell({ children }) {
+  return (
+    <div className="flex min-h-dvh items-center justify-center p-5">
+      <div className="w-full max-w-sm">
+        <div className="mb-8 text-center">
+          <div
+            className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-[1.6rem] bg-skin text-5xl"
+            aria-hidden
+          >
+            🍠
+          </div>
+          <h1 className="text-2xl font-bold">地瓜營運記帳</h1>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
 }
 
-export function SetupForm({
-  onReset
-}) {
+export function SetupForm({ onReset }) {
   let [t, setT] = React.useState("");
   let [n, setN] = React.useState("");
   let [s, setS] = React.useState(false);
@@ -31,15 +42,54 @@ export function SetupForm({
       setS(false);
     }
   }
-  return <AuthShell><form onSubmit={b} className="rounded-3xl bg-card p-5"><Field label="帳號（Email）"><input className="field" type="email" autoComplete="username" inputMode="email" value={t} onChange={m => setT(m.target.value)} /></Field><Field label="密碼" error={o}><input className="field" type="password" autoComplete="current-password" value={n} onChange={m => setN(m.target.value)} /></Field><Btn kind="primary" big type="submit" className="w-full" disabled={s}>{s ? "登入中…" : "登入"}</Btn></form><p className="mt-4 text-center text-sm text-muted">帳號由管理者在 Supabase 建立，不開放註冊。{!hasBuiltinConfig() && <><br /><button className="mt-2 font-bold text-flesh-ink underline" onClick={() => {
-          saveConfig(null);
-          onReset();
-        }}>更改資料庫連線</button></>}</p></AuthShell>;
+  return (
+    <AuthShell>
+      <form onSubmit={b} className="rounded-3xl bg-card p-5">
+        <Field label="帳號（Email）">
+          <input
+            className="field"
+            type="email"
+            autoComplete="username"
+            inputMode="email"
+            value={t}
+            onChange={(m) => setT(m.target.value)}
+          />
+        </Field>
+        <Field label="密碼" error={o}>
+          <input
+            className="field"
+            type="password"
+            autoComplete="current-password"
+            value={n}
+            onChange={(m) => setN(m.target.value)}
+          />
+        </Field>
+        <Btn kind="primary" big type="submit" className="w-full" disabled={s}>
+          {s ? "登入中…" : "登入"}
+        </Btn>
+      </form>
+      <p className="mt-4 text-center text-sm text-muted">
+        帳號由管理者在 Supabase 建立，不開放註冊。
+        {!hasBuiltinConfig() && (
+          <>
+            <br />
+            <button
+              className="mt-2 font-bold text-flesh-ink underline"
+              onClick={() => {
+                saveConfig(null);
+                onReset();
+              }}
+            >
+              更改資料庫連線
+            </button>
+          </>
+        )}
+      </p>
+    </AuthShell>
+  );
 }
 
-export function LoginForm({
-  onDone
-}) {
+export function LoginForm({ onDone }) {
   let [t, setT] = React.useState("");
   let [n, setN] = React.useState("");
   let [s, setS] = React.useState(false);
@@ -60,15 +110,15 @@ export function LoginForm({
     try {
       let r = await fetch(`${url}/auth/v1/settings`, {
         headers: {
-          apikey: n.trim()
-        }
+          apikey: n.trim(),
+        },
       });
       if (!r.ok) {
         throw new Error(String(r.status));
       }
       saveConfig({
         url,
-        anonKey: n.trim()
+        anonKey: n.trim(),
       });
       onDone();
     } catch {
@@ -77,5 +127,32 @@ export function LoginForm({
       setS(false);
     }
   }
-  return <AuthShell><form onSubmit={b} className="rounded-3xl bg-card p-5"><p className="mb-4 text-muted">第一次使用，請輸入 Supabase 的連線資料（在 Supabase 專案的 Settings → API）。</p><Field label="Project URL"><input className="field" inputMode="url" autoCapitalize="off" placeholder="https://xxxx.supabase.co" value={t} onChange={m => setT(m.target.value)} /></Field><Field label="anon public key" error={o}><textarea className="field min-h-24 font-mono text-sm" autoCapitalize="off" value={n} onChange={m => setN(m.target.value)} /></Field><Btn kind="primary" big type="submit" className="w-full" disabled={s}>{s ? "連線中…" : "連線"}</Btn></form></AuthShell>;
+  return (
+    <AuthShell>
+      <form onSubmit={b} className="rounded-3xl bg-card p-5">
+        <p className="mb-4 text-muted">第一次使用，請輸入 Supabase 的連線資料（在 Supabase 專案的 Settings → API）。</p>
+        <Field label="Project URL">
+          <input
+            className="field"
+            inputMode="url"
+            autoCapitalize="off"
+            placeholder="https://xxxx.supabase.co"
+            value={t}
+            onChange={(m) => setT(m.target.value)}
+          />
+        </Field>
+        <Field label="anon public key" error={o}>
+          <textarea
+            className="field min-h-24 font-mono text-sm"
+            autoCapitalize="off"
+            value={n}
+            onChange={(m) => setN(m.target.value)}
+          />
+        </Field>
+        <Btn kind="primary" big type="submit" className="w-full" disabled={s}>
+          {s ? "連線中…" : "連線"}
+        </Btn>
+      </form>
+    </AuthShell>
+  );
 }
