@@ -50,6 +50,9 @@ export function Purchases({ route }) {
   if (t === "new") {
     return <PurchaseEdit id={null} />;
   }
+  if (t === "swap") {
+    return <SwapForm />;
+  }
   if (t === "order" && route.parts[2]) {
     return <PurchaseEdit id={route.parts[2]} />;
   }
@@ -60,9 +63,12 @@ export function Purchases({ route }) {
   return (
     <Page
       title="進貨"
-      actions=<Btn kind="primary" href="#/purchases/new">
-        ＋進貨
-      </Btn>
+      actions={
+        <div className="flex gap-2">
+          <Btn href="#/purchases/swap">🔁 調換</Btn>
+          <Btn kind="primary" href="#/purchases/new">＋進貨</Btn>
+        </div>
+      }
     >
       <Segmented
         className="mb-4"
@@ -318,6 +324,11 @@ function PurchaseForm({ existing }) {
   }
   return (
     <Page title={existing ? "編輯進貨單" : "新增進貨"} backTo="/purchases">
+      {!existing && (
+        <a href="#/purchases/swap" className="mb-3 flex min-h-12 items-center gap-3 rounded-2xl bg-sunk px-4 font-bold active:opacity-80">
+          <span aria-hidden>🔁</span><span className="flex-1">跟阿基調換大中小包？用「大小調換」</span><span aria-hidden>›</span>
+        </a>
+      )}
       <Card className="mb-4">
         <div className="grid grid-cols-2 gap-3">
           <Field label="日期">
@@ -450,6 +461,103 @@ function PurchaseForm({ existing }) {
           {saving ? "儲存中…" : "儲存進貨"}
         </Btn>
       </div>
+    </Page>
+  );
+}
+
+// 跟供應商（例如阿基）調換大中小：給出去幾包、換回來幾包
+//   存成一張進貨單：換出 = 負數、換進 = 正數，同一個單價 → 包數一樣時金額 0，不用付錢
+//   包數不一樣時，差額會記在供應商帳款（多拿 = 欠對方，少拿 = 對方欠你）
+export const SWAP_NOTE = "大小調換";
+function SwapForm() {
+  let t = useStore();
+  let { saving, run } = useSaver();
+  const items = t.items.filter((x) => x.is_active && x.track_inventory);
+  const akee = t.suppliers.find((x) => x.is_active && x.name.includes("阿基"));
+  let [date, setDate] = React.useState(today_());
+  let [sup, setSup] = React.useState(akee?.id ?? t.suppliers.find((x) => x.is_active)?.id ?? "");
+  const newPair = () => ({ outItem: items[0]?.id ?? "", outQty: "", inItem: items[1]?.id ?? items[0]?.id ?? "", inQty: "" });
+  let [pairs, setPairs] = React.useState([newPair()]);
+  let [price, setPrice] = React.useState("");
+  let [note, setNote] = React.useState("");
+  let [err, setErr] = React.useState(null);
+  const setPair = (i, patch) => setPairs((ps) => ps.map((x, k) => (k === i ? { ...x, ...patch } : x)));
+  // 單價預設：換出去那種最近一次的進貨價
+  React.useEffect(() => {
+    const id = pairs[0]?.outItem;
+    if (!id || price !== "") return;
+    db.rpc("last_purchase_price", { p_item: id }).then((v) => { if (Number(v) > 0) setPrice((p) => (p === "" ? String(Number(v)) : p)); }).catch(() => {});
+  }, [pairs[0]?.outItem]);
+  const short = (id) => t.item(id)?.short_name ?? t.item(id)?.name ?? "";
+  const unit = parseMoney(price)?.amount ?? 0;
+  const outTotal = pairs.reduce((a, x) => a + (Number(x.outQty) || 0), 0);
+  const inTotal = pairs.reduce((a, x) => a + (Number(x.inQty) || 0), 0);
+  const diff = Math.round((inTotal - outTotal) * unit);
+  const supName = t.supplier(sup)?.name ?? "對方";
+  async function save() {
+    const ok = pairs.filter((x) => Number(x.outQty) > 0 || Number(x.inQty) > 0);
+    if (!date || !sup) return setErr("請選擇日期和供應商。");
+    if (ok.length === 0) return setErr("請填換出去和換回來的包數。");
+    if (ok.some((x) => Number(x.outQty) < 0 || Number(x.inQty) < 0)) return setErr("包數不要填負數。");
+    if (ok.some((x) => Number(x.outQty) > 0 && Number(x.inQty) > 0 && x.outItem === x.inItem)) return setErr("換出去和換回來是同一種，請檢查。");
+    if (parseMoney(price) === null || unit < 0) return setErr("每包價格看不懂，請檢查。");
+    setErr(null);
+    const lines = ok.flatMap((x) => [
+      ...(Number(x.outQty) > 0 ? [{ item_id: x.outItem, quantity: -Number(x.outQty), unit_price: unit, note: `換給${supName}` }] : []),
+      ...(Number(x.inQty) > 0 ? [{ item_id: x.inItem, quantity: Number(x.inQty), unit_price: unit, note: `從${supName}換回來` }] : []),
+    ]);
+    const desc = ok.map((x) => `${short(x.outItem)} ${x.outQty || 0} 包 → ${short(x.inItem)} ${x.inQty || 0} 包`).join("、");
+    const p = { id: null, order_date: date, supplier_id: sup, paid_account_id: null, paid_fee: 0, note: [`${SWAP_NOTE}：${desc}`, note.trim()].filter(Boolean).join("；"), lines };
+    if (await run(() => db.rpc("save_purchase", { p }), "已記錄大小調換")) goBack("/purchases");
+  }
+  const sel = (value, onChange, label) => (
+    <select className="field min-w-0" aria-label={label} value={value} onChange={(e) => onChange(e.target.value)}>
+      {items.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+    </select>
+  );
+  const qty = (value, onChange, label) => (
+    <input className="field tnum min-w-0 text-center text-lg font-bold" inputMode="decimal" aria-label={label} placeholder="包數" value={value} onChange={(e) => onChange(e.target.value)} />
+  );
+  return (
+    <Page title="大小調換" backTo="/purchases">
+      <Card className="mb-4">
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="日期"><input type="date" className="field" value={date} onChange={(e) => setDate(e.target.value)} /></Field>
+          <Field label="跟誰換">
+            <select className="field" value={sup} onChange={(e) => setSup(e.target.value)}>
+              {t.suppliers.filter((x) => x.is_active || x.id === sup).map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}
+            </select>
+          </Field>
+        </div>
+      </Card>
+      <Section title="怎麼換">
+        <Card>
+          {pairs.map((x, i) => (
+            <div key={i} className="mb-3 border-b border-line pb-3 last:mb-0 last:border-b-0 last:pb-0">
+              <div className="mb-1 text-sm font-bold text-skin">換出去（倉庫少）</div>
+              <div className="mb-3 grid grid-cols-[1fr_6rem] gap-2">{sel(x.outItem, (v) => setPair(i, { outItem: v }), "換出去的品項")}{qty(x.outQty, (v) => setPair(i, { outQty: v }), "換出去幾包")}</div>
+              <div className="mb-1 text-sm font-bold text-leaf">換回來（倉庫多）</div>
+              <div className="grid grid-cols-[1fr_6rem] gap-2">{sel(x.inItem, (v) => setPair(i, { inItem: v }), "換回來的品項")}{qty(x.inQty, (v) => setPair(i, { inQty: v }), "換回來幾包")}</div>
+              {pairs.length > 1 && <button className="mt-2 text-sm font-bold text-muted" onClick={() => setPairs((ps) => ps.filter((_, k) => k !== i))}>移除這組</button>}
+            </div>
+          ))}
+          <Btn kind="ghost" onClick={() => setPairs((ps) => [...ps, newPair()])}>＋再換一組</Btn>
+        </Card>
+      </Section>
+      <Card className="mb-4">
+        <Field label="每包算多少錢" hint="預設是換出去那種最近一次的進貨價；兩邊用同一個價格">
+          <MoneyInput compact value={price} onChange={setPrice} />
+        </Field>
+        <div className="rounded-xl bg-sunk p-3">
+          <div className="tnum">給{supName} <b>{num(outTotal)}</b> 包、換回 <b>{num(inTotal)}</b> 包</div>
+          <div className={diff === 0 ? "font-bold text-leaf" : "font-bold text-warn"}>
+            {diff === 0 ? "包數一樣，不用付錢" : diff > 0 ? `多拿 ${num(inTotal - outTotal)} 包 → 欠${supName} ${money(diff)}（記在供應商帳款）` : `少拿 ${num(outTotal - inTotal)} 包 → ${supName}欠你 ${money(-diff)}（記在供應商帳款）`}
+          </div>
+        </div>
+        <Field label="備註（選填）" className="mb-0 mt-3"><input className="field" value={note} onChange={(e) => setNote(e.target.value)} /></Field>
+      </Card>
+      {err && <p role="alert" className="mb-3 font-bold text-warn">{err}</p>}
+      <Btn kind="primary" big className="w-full" onClick={save} disabled={saving}>{saving ? "儲存中…" : "儲存調換"}</Btn>
     </Page>
   );
 }

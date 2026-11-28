@@ -113,9 +113,19 @@ export function StockLedger({ start }) {
       let oe = u.get(E.ref_id);
       let ye = oe ? _.get(oe.purchase_order_id) : undefined;
       let fe = t.supplier(ye?.supplier_id)?.name ?? "";
+      // 大小調換的單：換出、換進合成一行
+      const swap = (ye?.note ?? "").startsWith("大小調換");
       let tt = M(
-        `${E.kind}:${ye?.id ?? E.ref_id}`,
-        E.kind === "purchase"
+        swap ? `swap:${ye.id}` : `${E.kind}:${ye?.id ?? E.ref_id}`,
+        swap
+          ? {
+              date: E.flow_date,
+              order: 0,
+              text: `\u{1F501} 大小調換・${fe}`,
+              sub: ye.note.replace(/^大小調換：?/, "") || undefined,
+              href: `/purchases/order/${ye.id}`,
+            }
+          : E.kind === "purchase"
           ? {
               date: E.flow_date,
               order: 0,
@@ -133,7 +143,7 @@ export function StockLedger({ start }) {
             }
       );
       T(tt, E.item_id, E.kind === "purchase" ? Number(E.qty) : -Number(E.qty));
-      tt.cost += Number(E.qty) * Number(E.unit_cost ?? oe?.unit_price ?? 0);
+      if (!swap) tt.cost += Number(E.qty) * Number(E.unit_cost ?? oe?.unit_price ?? 0);
     } else if (E.kind === "cooked") {
       let oe = y_data.counts.find((Oe) => Oe.id === E.ref_id);
       let ye = v.get(E.business_day_id ?? "");

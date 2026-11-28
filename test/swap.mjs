@@ -1,0 +1,15 @@
+import { chromium } from '/home/claude/.npm-global/lib/node_modules/playwright/index.mjs';
+import { install } from './mock.mjs';
+const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: 390, height: 844 } }); const log = []; await install(ctx, log);
+const p = await ctx.newPage(); await p.clock.install({ time: new Date('2026-11-28T15:00:00+08:00') });
+const errs = []; p.on('pageerror', (e) => errs.push(e.message));
+await p.goto('http://127.0.0.1:8091/'); await p.fill('input[type=email]', 'a@b.c'); await p.fill('input[type=password]', 'pw'); await p.click('button[type=submit]'); await p.waitForTimeout(2000);
+await p.goto('http://127.0.0.1:8091/#/purchases'); await p.waitForTimeout(1200);
+await p.screenshot({ path: '/home/claude/sp/test/swap0.png', clip: { x: 0, y: 0, width: 390, height: 300 } });
+await p.click('text=🔁 調換'); await p.waitForTimeout(1500);
+await p.fill('[aria-label=換出去幾包]', '2'); await p.selectOption('[aria-label=換回來的品項]', { label: '地瓜（中）' }); await p.fill('[aria-label=換回來幾包]', '2');
+await p.waitForTimeout(300);
+await p.screenshot({ path: '/home/claude/sp/test/swap1.png', fullPage: true });
+await p.click('button:has-text("儲存調換")'); await p.waitForTimeout(1500);
+console.log(errs, log.filter((l) => l.includes('save_purchase')));
+await b.close();

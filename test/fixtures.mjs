@@ -53,13 +53,15 @@ cost.push({ entry_date: '2026-11-08', item_id: items[2].id, kind: 'adjust_count'
 export const business_days = days, market_plans = plans, transactions = txns, daily_item_counts = counts, v_pnl_entries = pnl, v_cost_entries = cost, v_daily_summary = daily;
 export const market_schedules = [];
 const po = (date, sup, lines, paid) => ({ o: { id: id('o0000000'), order_date: date, supplier_id: sup.id, paid_account_id: paid ? acct('POST') : null, paid_fee: paid ? 12 : 0, note: null }, lines });
-const pos = [po('2026-10-27', suppliers[0], [[items[0], 5, 900], [items[2], 11, 1000]], false), po('2026-11-12', suppliers[1], [[items[1], 25, 1260], [items[2], 25, 1260]], true), po('2026-11-06', suppliers[2], [[items[3], 1, 650]], false)];
+const pos = [po('2026-10-27', suppliers[0], [[items[0], 5, 900], [items[2], 11, 1000]], false), po('2026-11-12', suppliers[1], [[items[1], 25, 1260], [items[2], 25, 1260]], true), po('2026-11-06', suppliers[2], [[items[3], 1, 650]], false),
+  po('2026-11-20', suppliers[2], [[items[0], -2, 1260], [items[1], 2, 1260]], false)];
+pos[3].o.note = '大小調換：大 2 包 → 中 2 包';
 export const purchase_orders = pos.map((p) => p.o);
 export const purchase_lines = pos.flatMap((p) => p.lines.map(([it, q, pr]) => ({ id: id('q0000000'), purchase_order_id: p.o.id, item_id: it.id, quantity: q, unit_price: pr, amount: q * pr, note: null, created_at: p.o.order_date + 'T02:00:00Z' })));
 export const v_purchase_order_status = pos.map((p) => { const total = p.lines.reduce((a, [, q, pr]) => a + q * pr, 0); return { purchase_order_id: p.o.id, order_date: p.o.order_date, supplier_id: p.o.supplier_id, total, paid: p.o.paid_account_id ? total : 0, status: p.o.paid_account_id ? 'paid' : 'unpaid' }; });
 export const inventory_adjustments = [{ id: id('j0000000'), adj_date: '2026-11-08', item_id: items[1].id, quantity: 2, reason: 'count', unit_cost: 1210, note: '盤點', created_at: '2026-11-08T10:00:00Z' }];
 export const v_inventory_flows = [
-  ...purchase_lines.map((l) => ({ item_id: l.item_id, flow_date: purchase_orders.find((o) => o.id === l.purchase_order_id).order_date, dir: 1, qty: l.quantity, unit_cost: l.unit_price, kind: 'purchase', ref_id: l.id, created_at: l.created_at, business_day_id: null })),
+  ...purchase_lines.map((l) => ({ item_id: l.item_id, flow_date: purchase_orders.find((o) => o.id === l.purchase_order_id).order_date, dir: l.quantity > 0 ? 1 : -1, qty: Math.abs(l.quantity), unit_cost: l.quantity > 0 ? l.unit_price : null, kind: l.quantity > 0 ? 'purchase' : 'return', ref_id: l.id, created_at: l.created_at, business_day_id: null })),
   ...counts.filter((c) => days.find((b) => b.id === c.business_day_id).day >= '2026-11-01').map((c) => ({ item_id: c.item_id, flow_date: days.find((b) => b.id === c.business_day_id).day, dir: -1, qty: c.cooked, unit_cost: null, kind: 'cooked', ref_id: c.id, created_at: '2026-11-01T10:00:00Z', business_day_id: c.business_day_id }))];
 export const v_fifo_costs = [];
 export const v_inventory = items.map((it, k) => ({ item_id: it.id, name: it.name, short_name: it.short_name, unit: '包', sort_order: it.sort_order, on_hand: [0, 28.5, 11, 1][k] }));
